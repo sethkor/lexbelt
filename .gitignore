@@ -15,3 +15,5 @@
 packaged.yaml
 *.zip
 lex-lambda-sample-fulfilment
+
+dist/*

@@ -3,45 +3,48 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"reflect"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lexmodelbuildingservice"
+	"github.com/ghodss/yaml"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"log"
-	"os"
 )
 
 ///Command line flags
 var (
-	app         = kingpin.New("lexbelt", "AWS Lex CLI utilities")
-	pProfile    = app.Flag("profile", "AWS credentials/config file profile to use").String()
-	pRegion     = app.Flag("region", "AWS region").String()
-	//pVerbose    = app.Flag("verbose", "Verbose Logging").Default("false").Bool()
+	app      = kingpin.New("lexbelt", "AWS Lex CLI utilities")
+	pProfile = app.Flag("profile", "AWS credentials/config file profile to use").String()
+	pRegion  = app.Flag("region", "AWS region").String()
+	pVerbose = app.Flag("verbose", "Verbose Logging").Default("false").Bool()
 
-	pst  			= app.Command("put-slot-type", "Adds or updates a slot type")
-	pstName   	= pst.Flag("name", "Name of Slot Type").Required().String()
-	pstFile		= pst.Flag("cli-input-json","JSON file of Slot Type").Required().URL()
+	putSlotTypeCommand     = app.Command("put-slot-type", "Adds or updates a slot type")
+	putSlotTypeCommandName = putSlotTypeCommand.Flag("name", "Name of Slot Type").Required().String()
+	putSlotTypeCommandFile = putSlotTypeCommand.Flag("cli-input-json", "JSON file of Slot Type").Required().URL()
 
-	pi  			= app.Command("put-intent", "Adds or updates an intent")
-	piName   	= pi.Flag("name", "Name of Intent").Required().String()
-	piFile		= pi.Flag("cli-input-json","JSON file of Intent").Required().URL()
+	putIntentCommand     = app.Command("put-intent", "Adds or updates an intent")
+	putIntentCommandName = putIntentCommand.Flag("name", "Name of Intent").Required().String()
+	putIntentCommandFile = putIntentCommand.Flag("cli-input-json", "JSON file of Intent").Required().URL()
 
-
-	pb  			= app.Command("put-bot", "Adds or updates a bot")
-	pbName   	= pi.Flag("name", "Name of Intent").Required().String()
-	pbFile		= pi.Flag("cli-input-json","JSON file of Intent").Required().URL()
+	putBotCommand     = app.Command("put-bot", "Adds or updates a bot")
+	putBotCommandName = putBotCommand.Flag("name", "Name of Intent").Required().String()
+	putBotCommandFile = putBotCommand.Flag("cli-input-json", "JSON file of Intent").Required().URL()
 )
 
-//version variable which can be overidden at compile time
+//version variable which can be overidden at computIntentCommandle time
 var (
 	version = "dev-local-version"
 	commit  = "none"
 	date    = "unknown"
 )
 
-
-func checkError (err error) {
+func checkError(err error) {
 	if err != nil {
 
 		if aerr, ok := err.(awserr.Error); ok {
@@ -62,26 +65,76 @@ func checkError (err error) {
 
 }
 
-func putSlotType (svc *lexmodelbuildingservice.LexModelBuildingService, decoder json.Decoder) {
+func genericConversion(lexStuct interface{}) interface{} {
 
-	//check for existing slot type and get checksump
+	file := (*putIntentCommandFile).Path
+
+	thefile, err := ioutil.ReadFile(file)
+
+	if err != nil {
+		log.Fatal("reading config file", err.Error())
+	}
+
+	resStruct := reflect.New(reflect.TypeOf(lexStuct))
+
+	switch filepath.Ext(file) {
+	case ".yaml", ".yml":
+		err = yaml.Unmarshal(thefile, &resStruct)
+
+	default:
+		err = json.Unmarshal(thefile, &resStruct)
+
+	}
+
+	if err != nil {
+		log.Fatal("parsing config file", err.Error())
+	} else {
+		fmt.Println(resStruct)
+	}
+
+	return resStruct
+}
+
+func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	var mySlotType lexmodelbuildingservice.PutSlotTypeInput
 
-	if err := decoder.Decode(&mySlotType); err != nil {
+	file := (*putIntentCommandFile).Path
+
+	thefile, err := ioutil.ReadFile(file)
+
+	if err != nil {
+		log.Fatal("reading config file", err.Error())
+	}
+
+	switch filepath.Ext(file) {
+	case ".yaml", ".yml":
+		err = yaml.Unmarshal(thefile, &mySlotType)
+
+	default:
+		err = json.Unmarshal(thefile, &mySlotType)
+
+	}
+
+	if err != nil {
 		log.Fatal("parsing config file", err.Error())
 	} else {
 		fmt.Println(mySlotType)
 	}
 
+	if *putSlotTypeCommandName != "" {
+		mySlotType.Name = putSlotTypeCommandName
+	}
+
 	getResult, err := svc.GetSlotType(&lexmodelbuildingservice.GetSlotTypeInput{
-		Name: mySlotType.Name,
+		Name:    mySlotType.Name,
 		Version: aws.String("$LATEST"),
 	})
 
 	checkError(err)
 
 	mySlotType.Checksum = getResult.Checksum
+
 	putResult, err := svc.PutSlotType(&mySlotType)
 
 	checkError(err)
@@ -89,26 +142,49 @@ func putSlotType (svc *lexmodelbuildingservice.LexModelBuildingService, decoder 
 
 }
 
-func putIntent (svc *lexmodelbuildingservice.LexModelBuildingService, decoder json.Decoder){
-
-	//check for existing slot type and get checksump
+func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	var myIntent lexmodelbuildingservice.PutIntentInput
 
-	if err := decoder.Decode(&myIntent); err != nil {
+	myIntentInterface := genericConversion(myIntent)
+	myIntent = myIntentInterface.(lexmodelbuildingservice.PutIntentInput)
+
+	file := (*putIntentCommandFile).Path
+
+	thefile, err := ioutil.ReadFile(file)
+
+	if err != nil {
+		log.Fatal("reading config file", err.Error())
+	}
+
+	switch filepath.Ext(file) {
+	case ".yaml", ".yml":
+		err = yaml.Unmarshal(thefile, &myIntent)
+
+	default:
+		err = json.Unmarshal(thefile, &myIntent)
+
+	}
+
+	if err != nil {
 		log.Fatal("parsing config file", err.Error())
 	} else {
 		fmt.Println(myIntent)
 	}
 
+	if *putIntentCommandName != "" {
+		myIntent.Name = putIntentCommandName
+	}
+
 	getResult, err := svc.GetIntent(&lexmodelbuildingservice.GetIntentInput{
-		Name: myIntent.Name,
+		Name:    myIntent.Name,
 		Version: aws.String("$LATEST"),
 	})
 
 	checkError(err)
 
 	myIntent.Checksum = getResult.Checksum
+
 	putResult, err := svc.PutIntent(&myIntent)
 
 	checkError(err)
@@ -116,26 +192,45 @@ func putIntent (svc *lexmodelbuildingservice.LexModelBuildingService, decoder js
 
 }
 
-func putBot (svc *lexmodelbuildingservice.LexModelBuildingService, decoder json.Decoder){
-
-	//check for existing slot type and get checksump
+func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	var myBot lexmodelbuildingservice.PutBotInput
 
-	if err := decoder.Decode(&myBot); err != nil {
+	file := (*putIntentCommandFile).Path
+
+	thefile, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatal("reading config file", err.Error())
+	}
+
+	switch filepath.Ext(file) {
+	case ".yaml", ".yml":
+		err = yaml.Unmarshal(thefile, &myBot)
+
+	default:
+		err = json.Unmarshal(thefile, &myBot)
+
+	}
+
+	if err != nil {
 		log.Fatal("parsing config file", err.Error())
 	} else {
 		fmt.Println(myBot)
 	}
 
+	if *putBotCommandName != "" {
+		myBot.Name = putBotCommandName
+	}
+
 	getResult, err := svc.GetIntent(&lexmodelbuildingservice.GetIntentInput{
-		Name: myBot.Name,
+		Name:    myBot.Name,
 		Version: aws.String("$LATEST"),
 	})
 
 	checkError(err)
 
 	myBot.Checksum = getResult.Checksum
+
 	putResult, err := svc.PutBot(&myBot)
 
 	checkError(err)
@@ -143,11 +238,11 @@ func putBot (svc *lexmodelbuildingservice.LexModelBuildingService, decoder json.
 
 }
 
-
-func main () {
+func main() {
 
 	app.Version(version)
-	kingpin.CommandLine.HelpFlag.Short('h')
+	app.HelpFlag.Short('h')
+	app.VersionFlag.Short('v')
 
 	command := kingpin.MustParse(app.Parse(os.Args[1:]))
 
@@ -170,21 +265,13 @@ func main () {
 
 	svc := lexmodelbuildingservice.New(sess)
 
-	jsonFile, err := os.Open((*pstFile).Path)
-
-	if err != nil {
-		fmt.Println("Error opening json file", err.Error())
-	}
-
-	jsonParser := json.NewDecoder(jsonFile)
-
 	switch command {
-	case pst.FullCommand():
-		putSlotType(svc, *jsonParser)
-	case pi.FullCommand():
-		putIntent(svc, *jsonParser)
-	case pb.FullCommand():
-		putBot(svc, *jsonParser)
+	case putSlotTypeCommand.FullCommand():
+		putSlotType(svc)
+	case putIntentCommand.FullCommand():
+		putIntent(svc)
+	case putBotCommand.FullCommand():
+		putBot(svc)
 	}
 
 }

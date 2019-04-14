@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"reflect"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -22,7 +22,7 @@ var (
 	app      = kingpin.New("lexbelt", "AWS Lex CLI utilities")
 	pProfile = app.Flag("profile", "AWS credentials/config file profile to use").String()
 	pRegion  = app.Flag("region", "AWS region").String()
-	pVerbose = app.Flag("verbose", "Verbose Logging").Default("false").Bool()
+	pVerbose = app.Flag("verbose", "Verbose Logging - not implemented yet").Default("false").Bool()
 
 	putSlotTypeCommand     = app.Command("put-slot-type", "Adds or updates a slot type")
 	putSlotTypeCommandName = putSlotTypeCommand.Flag("name", "Name of Slot Type").Required().String()
@@ -35,6 +35,8 @@ var (
 	putBotCommand     = app.Command("put-bot", "Adds or updates a bot")
 	putBotCommandName = putBotCommand.Flag("name", "Name of Intent").Required().String()
 	putBotCommandFile = putBotCommand.Flag("cli-input-json", "JSON file of Intent").Required().URL()
+	poll              = putBotCommand.Flag("poll", "Poll time").Default("3").Int()
+	dontWait          = putBotCommand.Flag("dont-wait", "Don't wait for the build to completed before exiting").Default("false").Bool()
 )
 
 //version variable which can be overidden at computIntentCommandle time
@@ -65,41 +67,11 @@ func checkError(err error) {
 
 }
 
-func genericConversion(lexStuct interface{}) interface{} {
-
-	file := (*putIntentCommandFile).Path
-
-	thefile, err := ioutil.ReadFile(file)
-
-	if err != nil {
-		log.Fatal("reading config file", err.Error())
-	}
-
-	resStruct := reflect.New(reflect.TypeOf(lexStuct))
-
-	switch filepath.Ext(file) {
-	case ".yaml", ".yml":
-		err = yaml.Unmarshal(thefile, &resStruct)
-
-	default:
-		err = json.Unmarshal(thefile, &resStruct)
-
-	}
-
-	if err != nil {
-		log.Fatal("parsing config file", err.Error())
-	} else {
-		fmt.Println(resStruct)
-	}
-
-	return resStruct
-}
-
 func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	var mySlotType lexmodelbuildingservice.PutSlotTypeInput
 
-	file := (*putIntentCommandFile).Path
+	file := (*putSlotTypeCommandFile).Path
 
 	thefile, err := ioutil.ReadFile(file)
 
@@ -118,8 +90,6 @@ func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	if err != nil {
 		log.Fatal("parsing config file", err.Error())
-	} else {
-		fmt.Println(mySlotType)
 	}
 
 	if *putSlotTypeCommandName != "" {
@@ -135,19 +105,15 @@ func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	mySlotType.Checksum = getResult.Checksum
 
-	putResult, err := svc.PutSlotType(&mySlotType)
+	_, err = svc.PutSlotType(&mySlotType)
 
 	checkError(err)
-	fmt.Println(putResult)
 
 }
 
 func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	var myIntent lexmodelbuildingservice.PutIntentInput
-
-	myIntentInterface := genericConversion(myIntent)
-	myIntent = myIntentInterface.(lexmodelbuildingservice.PutIntentInput)
 
 	file := (*putIntentCommandFile).Path
 
@@ -168,8 +134,6 @@ func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	if err != nil {
 		log.Fatal("parsing config file", err.Error())
-	} else {
-		fmt.Println(myIntent)
 	}
 
 	if *putIntentCommandName != "" {
@@ -185,10 +149,9 @@ func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	myIntent.Checksum = getResult.Checksum
 
-	putResult, err := svc.PutIntent(&myIntent)
+	_, err = svc.PutIntent(&myIntent)
 
 	checkError(err)
-	fmt.Println(putResult)
 
 }
 
@@ -196,7 +159,7 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	var myBot lexmodelbuildingservice.PutBotInput
 
-	file := (*putIntentCommandFile).Path
+	file := (*putBotCommandFile).Path
 
 	thefile, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -214,17 +177,15 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	if err != nil {
 		log.Fatal("parsing config file", err.Error())
-	} else {
-		fmt.Println(myBot)
 	}
 
 	if *putBotCommandName != "" {
 		myBot.Name = putBotCommandName
 	}
 
-	getResult, err := svc.GetIntent(&lexmodelbuildingservice.GetIntentInput{
-		Name:    myBot.Name,
-		Version: aws.String("$LATEST"),
+	getResult, err := svc.GetBot(&lexmodelbuildingservice.GetBotInput{
+		Name:           myBot.Name,
+		VersionOrAlias: aws.String("$LATEST"),
 	})
 
 	checkError(err)
@@ -234,7 +195,31 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
 	putResult, err := svc.PutBot(&myBot)
 
 	checkError(err)
-	fmt.Println(putResult)
+
+	//loop and poll the status
+
+	if !*dontWait {
+		getResult.Status = putResult.Status
+		for {
+
+			fmt.Println(*getResult.Status)
+
+			if *getResult.Status == "READY" {
+				break
+			} else if *getResult.Status == "FAILED" {
+				fmt.Println(*getResult.FailureReason)
+				break
+			}
+
+			time.Sleep((time.Duration(*poll) * time.Second))
+
+			getResult, err = svc.GetBot(&lexmodelbuildingservice.GetBotInput{
+				Name:           myBot.Name,
+				VersionOrAlias: aws.String("$LATEST"),
+			})
+
+		}
+	}
 
 }
 

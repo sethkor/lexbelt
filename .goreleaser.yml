@@ -11,12 +11,33 @@ builds:
   - CGO_ENABLED=0
   goos:
     - darwin
+    - linux
   goarch:
     - amd64
-archive:
-  replacements:
-    darwin: Darwin
-#    linux: Linux
+    - 386
+    - arm64
+    - arm
+  goarm:
+    - 6
+    - 7
+  ignore:
+      - goos: darwin
+        goarch: 386
+      - goos: darwin
+        goarch: arm64
+
+archives:
+  -
+    replacements:
+      darwin: Darwin
+      linux: Linux
+
+    # Can be used to change the archive formats for specific GOOSs.
+    # Most common use case is to archive as zip on Windows.
+    # Default is empty.
+    format_overrides:
+      - goos: windows
+        format: zip
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -27,6 +48,7 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+
 
 brew:
   # Name template of the recipe
@@ -114,3 +136,4 @@ brew:
   #install: |
   # bin.install "program"
   #  ...
+

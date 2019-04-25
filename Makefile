@@ -7,3 +7,6 @@ linux:
 
 clean:
 	rm lexbelt.linux lexbelt.linux.gz
+
+publish-test:
+	goreleaser --snapshot --skip-publish --rm-dist

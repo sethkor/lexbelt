@@ -26,15 +26,15 @@ var (
 
 	putSlotTypeCommand     = app.Command("put-slot-type", "Adds or updates a slot type")
 	putSlotTypeCommandName = putSlotTypeCommand.Flag("name", "Name of Slot Type").Required().String()
-	putSlotTypeCommandFile = putSlotTypeCommand.Flag("cli-input-json", "JSON file of Slot Type").Required().URL()
+	putSlotTypeCommandFile = putSlotTypeCommand.Arg("file", "The input specification in json or yaml").Required().File()
 
 	putIntentCommand     = app.Command("put-intent", "Adds or updates an intent")
 	putIntentCommandName = putIntentCommand.Flag("name", "Name of Intent").Required().String()
-	putIntentCommandFile = putIntentCommand.Flag("cli-input-json", "JSON file of Intent").Required().URL()
+	putIntentCommandFile = putIntentCommand.Arg("file", "The input specification in json or yaml").Required().File()
 
 	putBotCommand     = app.Command("put-bot", "Adds or updates a bot")
 	putBotCommandName = putBotCommand.Flag("name", "Name of Intent").Required().String()
-	putBotCommandFile = putBotCommand.Flag("cli-input-json", "JSON file of Intent").Required().URL()
+	putBotCommandFile = putBotCommand.Arg("file", "The input specification in json or yaml").Required().File()
 	poll              = putBotCommand.Flag("poll", "Poll time").Default("3").Int()
 	dontWait          = putBotCommand.Flag("dont-wait", "Don't wait for the build to completed before exiting").Default("false").Bool()
 )
@@ -67,24 +67,19 @@ func checkError(err error) {
 
 }
 
-func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
-
-	var mySlotType lexmodelbuildingservice.PutSlotTypeInput
-
-	file := (*putSlotTypeCommandFile).Path
-
-	thefile, err := ioutil.ReadFile(file)
+func readAndUnmarshal(fileName string, destination interface{}) {
+	thefile, err := ioutil.ReadFile(fileName)
 
 	if err != nil {
 		log.Fatal("reading config file", err.Error())
 	}
 
-	switch filepath.Ext(file) {
+	switch filepath.Ext(fileName) {
 	case ".yaml", ".yml":
-		err = yaml.Unmarshal(thefile, &mySlotType)
+		err = yaml.Unmarshal(thefile, destination)
 
 	default:
-		err = json.Unmarshal(thefile, &mySlotType)
+		err = json.Unmarshal(thefile, destination)
 
 	}
 
@@ -92,10 +87,16 @@ func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
 		log.Fatal("parsing config file", err.Error())
 	}
 
+}
+
+func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
+	var mySlotType lexmodelbuildingservice.PutSlotTypeInput
+
+	readAndUnmarshal((*putSlotTypeCommandFile).Name(), &mySlotType)
+
 	if *putSlotTypeCommandName != "" {
 		mySlotType.Name = putSlotTypeCommandName
 	}
-
 	getResult, err := svc.GetSlotType(&lexmodelbuildingservice.GetSlotTypeInput{
 		Name:    mySlotType.Name,
 		Version: aws.String("$LATEST"),
@@ -114,27 +115,7 @@ func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
 func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	var myIntent lexmodelbuildingservice.PutIntentInput
-
-	file := (*putIntentCommandFile).Path
-
-	thefile, err := ioutil.ReadFile(file)
-
-	if err != nil {
-		log.Fatal("reading config file", err.Error())
-	}
-
-	switch filepath.Ext(file) {
-	case ".yaml", ".yml":
-		err = yaml.Unmarshal(thefile, &myIntent)
-
-	default:
-		err = json.Unmarshal(thefile, &myIntent)
-
-	}
-
-	if err != nil {
-		log.Fatal("parsing config file", err.Error())
-	}
+	readAndUnmarshal((*putIntentCommandFile).Name(), &myIntent)
 
 	if *putIntentCommandName != "" {
 		myIntent.Name = putIntentCommandName
@@ -158,26 +139,7 @@ func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService) {
 func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
 
 	var myBot lexmodelbuildingservice.PutBotInput
-
-	file := (*putBotCommandFile).Path
-
-	thefile, err := ioutil.ReadFile(file)
-	if err != nil {
-		log.Fatal("reading config file", err.Error())
-	}
-
-	switch filepath.Ext(file) {
-	case ".yaml", ".yml":
-		err = yaml.Unmarshal(thefile, &myBot)
-
-	default:
-		err = json.Unmarshal(thefile, &myBot)
-
-	}
-
-	if err != nil {
-		log.Fatal("parsing config file", err.Error())
-	}
+	readAndUnmarshal((*putBotCommandFile).Name(), &myBot)
 
 	if *putBotCommandName != "" {
 		myBot.Name = putBotCommandName
@@ -217,10 +179,8 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
 				Name:           myBot.Name,
 				VersionOrAlias: aws.String("$LATEST"),
 			})
-
 		}
 	}
-
 }
 
 func main() {

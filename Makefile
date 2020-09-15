@@ -1,5 +1,5 @@
 mac:
-	env GOOS=darwin GOARCH=amd64 go build -o lexbelt.mac
+	env GOOS=darwin GOARCH=amd64 go build -o lexbelt
 
 linux:
 	env GOOS=linux GOARCH=amd64 go build -o lexbelt.linux
@@ -10,3 +10,6 @@ clean:
 
 publish-test:
 	goreleaser --snapshot --skip-publish --rm-dist
+
+publish:
+	goreleaser --rm-dist --skip-validate

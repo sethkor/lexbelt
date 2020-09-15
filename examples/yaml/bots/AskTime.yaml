@@ -1,0 +1,13 @@
+name: Talking Clock
+description: A Lex bot that tells you the time
+locale: en-US
+voiceId: Salli
+childDirected: false
+idleSessionTTLInSeconds: 600
+intents:
+  - intentName: AskTime
+    intentVersion: $LATEST
+abortStatement:
+  messages:
+    - content: Sorry, I can't help you right now
+      contentType: PlainText

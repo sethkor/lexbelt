@@ -1,0 +1,20 @@
+name: Another Clock
+description: A Lex bot that tells you the time
+locale: en-US
+voiceId: Salli
+childDirected: false
+idleSessionTTLInSeconds: 600
+intents:
+  - intentName: AskTime
+    intentVersion: $LATEST
+  - intentName: AskDay
+    intentVersion: $LATEST
+clarificationPrompt:
+  maxAttempts: 3
+  messages:
+    - content: Sorry, I don't understand what you would like to do
+      contentType: PlainText
+abortStatement:
+  messages:
+    - content: Sorry, I can't help you right now
+      contentType: PlainText  

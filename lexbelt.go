@@ -159,17 +159,16 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
 	checkError(err)
 
 	//loop and poll the status
-
 	if !*dontWait {
-		getResult.Status = putResult.Status
+		currentStatus := *putResult.Status
+		fmt.Print(currentStatus)
 		for {
 
-			fmt.Println(*getResult.Status)
-
-			if *getResult.Status == "READY" {
+			if currentStatus == "READY" {
+				fmt.Println()
 				break
-			} else if *getResult.Status == "FAILED" {
-				fmt.Println(*getResult.FailureReason)
+			} else if currentStatus == "FAILED" {
+				fmt.Printf("\n%s\n", *getResult.FailureReason)
 				break
 			}
 
@@ -179,6 +178,13 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
 				Name:           myBot.Name,
 				VersionOrAlias: aws.String("$LATEST"),
 			})
+
+			if currentStatus != *getResult.Status {
+				currentStatus = *getResult.Status
+				fmt.Printf("\n" + currentStatus)
+			} else {
+				fmt.Print(".")
+			}
 		}
 	}
 }

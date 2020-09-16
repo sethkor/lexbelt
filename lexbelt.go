@@ -1,19 +1,11 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lexmodelbuildingservice"
-	"github.com/ghodss/yaml"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -46,147 +38,33 @@ var (
 	date    = "unknown"
 )
 
-func checkError(err error) {
-	if err != nil {
+func getAwsSession() *session.Session {
+	var sess *session.Session
+	if *pProfile != "" {
 
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
+		sess = session.Must(session.NewSessionWithOptions(session.Options{
+			Profile:           *pProfile,
+			SharedConfigState: session.SharedConfigEnable,
+			Config: aws.Config{
+				CredentialsChainVerboseErrors: aws.Bool(true),
+				MaxRetries:                    aws.Int(30),
+			},
+		}))
 
-			case lexmodelbuildingservice.ErrCodeNotFoundException:
-				break
-			default:
-				log.Fatal(aerr.Error())
-			}
-		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			log.Fatal(err.Error())
-		}
+	} else {
+		sess = session.Must(session.NewSessionWithOptions(session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+			Config: aws.Config{
+				CredentialsChainVerboseErrors: aws.Bool(true),
+				MaxRetries:                    aws.Int(30),
+			},
+		}))
+	} //else
 
+	if *pRegion != "" {
+		sess.Config.Region = aws.String(*pRegion)
 	}
-
-}
-
-func readAndUnmarshal(fileName string, destination interface{}) {
-	thefile, err := ioutil.ReadFile(fileName)
-
-	if err != nil {
-		log.Fatal("reading config file", err.Error())
-	}
-
-	switch filepath.Ext(fileName) {
-	case ".yaml", ".yml":
-		err = yaml.Unmarshal(thefile, destination)
-
-	default:
-		err = json.Unmarshal(thefile, destination)
-
-	}
-
-	if err != nil {
-		log.Fatal("parsing config file", err.Error())
-	}
-
-}
-
-func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
-	var mySlotType lexmodelbuildingservice.PutSlotTypeInput
-
-	readAndUnmarshal((*putSlotTypeCommandFile).Name(), &mySlotType)
-
-	if *putSlotTypeCommandName != "" {
-		mySlotType.Name = putSlotTypeCommandName
-	}
-	getResult, err := svc.GetSlotType(&lexmodelbuildingservice.GetSlotTypeInput{
-		Name:    mySlotType.Name,
-		Version: aws.String("$LATEST"),
-	})
-
-	checkError(err)
-
-	mySlotType.Checksum = getResult.Checksum
-
-	_, err = svc.PutSlotType(&mySlotType)
-
-	checkError(err)
-
-}
-
-func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService) {
-
-	var myIntent lexmodelbuildingservice.PutIntentInput
-	readAndUnmarshal((*putIntentCommandFile).Name(), &myIntent)
-
-	if *putIntentCommandName != "" {
-		myIntent.Name = putIntentCommandName
-	}
-
-	getResult, err := svc.GetIntent(&lexmodelbuildingservice.GetIntentInput{
-		Name:    myIntent.Name,
-		Version: aws.String("$LATEST"),
-	})
-
-	checkError(err)
-
-	myIntent.Checksum = getResult.Checksum
-
-	_, err = svc.PutIntent(&myIntent)
-
-	checkError(err)
-
-}
-
-func putBot(svc *lexmodelbuildingservice.LexModelBuildingService) {
-
-	var myBot lexmodelbuildingservice.PutBotInput
-	readAndUnmarshal((*putBotCommandFile).Name(), &myBot)
-
-	if *putBotCommandName != "" {
-		myBot.Name = putBotCommandName
-	}
-
-	getResult, err := svc.GetBot(&lexmodelbuildingservice.GetBotInput{
-		Name:           myBot.Name,
-		VersionOrAlias: aws.String("$LATEST"),
-	})
-
-	checkError(err)
-
-	myBot.Checksum = getResult.Checksum
-
-	putResult, err := svc.PutBot(&myBot)
-
-	checkError(err)
-
-	//loop and poll the status
-	if !*dontWait {
-		currentStatus := *putResult.Status
-		fmt.Print(currentStatus)
-		for {
-
-			if currentStatus == "READY" {
-				fmt.Println()
-				break
-			} else if currentStatus == "FAILED" {
-				fmt.Printf("\n%s\n", *getResult.FailureReason)
-				break
-			}
-
-			time.Sleep((time.Duration(*poll) * time.Second))
-
-			getResult, err = svc.GetBot(&lexmodelbuildingservice.GetBotInput{
-				Name:           myBot.Name,
-				VersionOrAlias: aws.String("$LATEST"),
-			})
-
-			if currentStatus != *getResult.Status {
-				currentStatus = *getResult.Status
-				fmt.Printf("\n" + currentStatus)
-			} else {
-				fmt.Print(".")
-			}
-		}
-	}
+	return sess
 }
 
 func main() {
@@ -197,22 +75,24 @@ func main() {
 
 	command := kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	var sess *session.Session
-	if *pProfile != "" {
-		sess = session.Must(session.NewSessionWithOptions(session.Options{
-			Profile:           *pProfile,
-			SharedConfigState: session.SharedConfigEnable,
-		}))
+	sess := getAwsSession()
 
-	} else {
-		sess = session.Must(session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
-		}))
-
-	} //else
-	if *pRegion != "" {
-		sess.Config.Region = aws.String(*pRegion)
-	}
+	//var sess *session.Session
+	//if *pProfile != "" {
+	//	sess = session.Must(session.NewSessionWithOptions(session.Options{
+	//		Profile:           *pProfile,
+	//		SharedConfigState: session.SharedConfigEnable,
+	//	}))
+	//
+	//} else {
+	//	sess = session.Must(session.NewSessionWithOptions(session.Options{
+	//		SharedConfigState: session.SharedConfigEnable,
+	//	}))
+	//
+	//} //else
+	//if *pRegion != "" {
+	//	sess.Config.Region = aws.String(*pRegion)
+	//}
 
 	svc := lexmodelbuildingservice.New(sess)
 

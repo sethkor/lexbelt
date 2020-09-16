@@ -1,13 +1,14 @@
-name: AskDay
-description: Intent to ask what the day is
-version: 1
-sampleUtterances:
-  - 'Whats the day'
-  - 'What day is it'
-  - 'Day please'
-  - 'Four'
-fulfillmentActivity:
-  codeHook:
-     uri: arn:aws:lambda:us-west-2:166330533654:function:LexLambdaSampleFulfilment
-     messageVersion: "1.0"
-  type: CodeHook
+lexIntent:
+  name: AskDay
+  description: Intent to ask what the day is
+  version: 1
+  sampleUtterances:
+    - 'Whats the day'
+    - 'What day is it'
+    - 'Day please'
+    - 'Four'
+  fulfillmentActivity:
+    codeHook:
+       uri: arn:aws:lambda:us-west-2:166330533654:function:LexLambdaSampleFulfilment
+       messageVersion: "1.0"
+    type: CodeHook

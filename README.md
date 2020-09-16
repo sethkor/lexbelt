@@ -64,6 +64,7 @@ your-lex-workspace
    ├──bots
    └──monobot
 ```
+When using the provision command for a mono bot, the `--name` flag is optional.  If it is not present `lexbelt` will use the `lexBotName` in the monobot specification file.
 
 You can take a look at examples/yaml/monobot/OrderFlowersMono.yaml to see an example monobot yaml file like so:
 ```

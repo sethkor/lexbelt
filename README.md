@@ -54,7 +54,7 @@ For other platforms take a look at the releases in Github.  I build binaries for
 
 Let me know if you would like a particular os/arch binary regularly built.
 
-###Monobots
+### Monobots
 A monobot will provision everything you need for a lex bot.  This includes the slots, intents and the bot plus it will build it
 lexbelt expects your lex yaml files in the following directory structure for a mono bot to be provisioned.
 ```
@@ -78,7 +78,7 @@ LexBotProvisioner:
 The yaml/json syntax for slots, intents and bots are all based directly of the AWS API Put API calls, so any attribute 
 supported by the AWS API will be supported in the API now or in the future can be included in a yaml file
 
-###TODO
+### TODO
 * Publishing bots
 * Any other feature requested.
 * Windows Testing

@@ -88,9 +88,9 @@ func main() {
 	case putIntentCommand.FullCommand():
 		putIntent(svc, (*putIntentCommandFile).Name())
 	case putBotCommand.FullCommand():
-		putBot(svc, (*putBotCommandFile).Name(), *putBotCommandPoll)
+		putBot(svc, (*putBotCommandFile).Name(), *putBotCommandName, *putBotCommandPoll)
 	case provisionCommand.FullCommand():
-		provision(svc, (*provisionCommandFile).Name(), *provisionCommandPoll)
+		provision(svc, (*provisionCommandFile).Name(), *provisionCommandName, *provisionCommandPoll)
 	}
 
 }

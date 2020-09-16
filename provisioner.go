@@ -24,7 +24,7 @@ type provisionerSpecification struct {
 	} `locationName:"lexBotProvisioner" type:"structure"`
 }
 
-func provision(svc *lexmodelbuildingservice.LexModelBuildingService, file string, poll int) {
+func provision(svc *lexmodelbuildingservice.LexModelBuildingService, file string, name string, poll int) {
 
 	var myProvisionerSpecification provisionerSpecification
 	readAndUnmarshal(file, &myProvisionerSpecification)
@@ -34,11 +34,11 @@ func provision(svc *lexmodelbuildingservice.LexModelBuildingService, file string
 	}
 
 	var myProvisioner provisioner
-	if *provisionCommandName != "" {
-		myProvisioner.LexBot.Name = putIntentCommandName
-	} else {
-		myProvisioner.LexBot.Name = myProvisionerSpecification.LexBotProvisioner.LexBotName
+
+	if name == "" {
+		name = *myProvisionerSpecification.LexBotProvisioner.LexBotName
 	}
+	myProvisioner.LexBot.Name = &name
 
 	//based on the mono bot yaml, load slots, intents and the bot and provision in the correct order
 
@@ -59,6 +59,6 @@ func provision(svc *lexmodelbuildingservice.LexModelBuildingService, file string
 
 	//lastly the bot
 	fmt.Println("Adding the bot and building it")
-	putBot(svc, basePath+"bots"+separator+*myProvisionerSpecification.LexBotProvisioner.LexBot, poll)
+	putBot(svc, basePath+"bots"+separator+*myProvisionerSpecification.LexBotProvisioner.LexBot, name, poll)
 
 }

@@ -13,7 +13,7 @@ type botYaml struct {
 	LexBot *lexmodelbuildingservice.PutBotInput `locationName:"lexBot" type:"structure"`
 }
 
-func putBot(svc *lexmodelbuildingservice.LexModelBuildingService, file string, poll int) {
+func putBot(svc *lexmodelbuildingservice.LexModelBuildingService, file string, name string, poll int) {
 
 	var myBot botYaml
 	readAndUnmarshal(file, &myBot)
@@ -22,8 +22,8 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService, file string, p
 		log.Fatal("Yaml file is not as expected, please check your syntax.")
 	}
 
-	if *putBotCommandName != "" {
-		myBot.LexBot.Name = putBotCommandName
+	if name != "" {
+		myBot.LexBot.Name = &name
 	}
 
 	getResult, err := svc.GetBot(&lexmodelbuildingservice.GetBotInput{

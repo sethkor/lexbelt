@@ -1,19 +1,21 @@
 {
-    "name": "FlowerTypes",
-    "description": "Types of flowers to pick up",
-    "enumerationValues": [
-        {
-            "value": "tulips"
-        },
-        {
-            "value": "lilies"
-        },
-        {
-            "value": "roses"
-        },
-        {
-            "value": "carnations"
-        }
-    ]
+    "lexSlot" : {
+        "name": "FlowerTypes",
+        "description": "Types of flowers to pick up",
+        "enumerationValues": [
+            {
+                "value": "tulips"
+            },
+            {
+                "value": "lilies"
+            },
+            {
+                "value": "roses"
+            },
+            {
+                "value": "carnations"
+            }
+        ]
+    }
 }
                 

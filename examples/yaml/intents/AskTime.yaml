@@ -1,12 +1,13 @@
-name: AskTime
-description: Intent to ask what the time is
-version: 1
-sampleUtterances:
-  - 'Whats the time'
-  - 'What time is it'
-  - 'Time please'
-fulfillmentActivity:
-  codeHook:
-     uri: arn:aws:lambda:ap-southeast-2:293499315857:function:LexLambdaSampleFulfilment
-     messageVersion: "1.0"
-  type: CodeHook
+lexIntent:
+  name: AskTime
+  description: Intent to ask what the time is
+  version: 1
+  sampleUtterances:
+    - 'Whats the time'
+    - 'What time is it'
+    - 'Time please'
+  fulfillmentActivity:
+    codeHook:
+       uri: arn:aws:lambda:ap-southeast-2:293499315857:function:LexLambdaSampleFulfilment
+       messageVersion: "1.0"
+    type: CodeHook

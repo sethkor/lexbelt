@@ -1,10 +1,11 @@
-name: Flower Types yaml
-description: types of flowers to pick up from a yaml file
-enumerationValues:
-  - value: tulips
-    synonyms:
-      - dutch
-      - holland
-  - value: lilies
-  - value: roses
-  - value: carnations
+lexSlot:
+  name: MoreFlowerTypes
+  description: types of flowers to pick up from a yaml file
+  enumerationValues:
+    - value: tulips
+      synonyms:
+        - dutch
+        - holland
+    - value: lilies
+    - value: roses
+    - value: carnations

@@ -34,7 +34,7 @@ Commands:
   provision [<flags>] <file>
     Provisions and builds an entire Lex bot including slots, intents and the actual bot
 ```
-###Getting lexbelt
+### Getting lexbelt
 Easiest way to install if you're on a Mac or Linux (amd64 or arm64)  is to use [Homebrew](https://brew.sh/)
 
 Type:

@@ -1,0 +1,10 @@
+{
+  "LexBotProvisioner": {
+    "lexBotName": "OrderFlowersOnceMore",
+    "lexBot": "OrderFlowersBot.json",
+    "lexIntent": "OrderFlowers.json",
+    "lexSlot": [
+      "FlowerTypes.json"
+    ]
+  }
+}

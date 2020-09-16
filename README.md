@@ -29,7 +29,7 @@ Commands:
     Adds or updates an intent
 
   put-bot --name=NAME [<flags>] <file>
-    Adds or updates a bot
+    Adds or updates a bo
 
   provision [<flags>] <file>
     Provisions and builds an entire Lex bot including slots, intents and the actual bot
@@ -79,7 +79,6 @@ The yaml/json syntax for slots, intents and bots are all based directly of the A
 supported by the AWS API will be supported in the API now or in the future can be included in a yaml file
 
 ###TODO
-* Test monobot in json format
 * Publishing bots
 * Any other feature requested.
 * Windows Testing

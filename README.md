@@ -62,7 +62,7 @@ your-lex-workspace
    ├──slots
    ├──intents
    ├──bots
-   └──monobot
+   └──monobots
 ```
 When using the provision command for a mono bot, the `--name` flag is optional.  If it is not present `lexbelt` will use the `lexBotName` in the monobot specification file.
 

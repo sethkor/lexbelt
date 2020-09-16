@@ -14,7 +14,6 @@ var (
 	app      = kingpin.New("lexbelt", "AWS Lex CLI utilities")
 	pProfile = app.Flag("profile", "AWS credentials/config file profile to use").String()
 	pRegion  = app.Flag("region", "AWS region").String()
-	pVerbose = app.Flag("verbose", "Verbose Logging - not implemented yet").Default("false").Bool()
 
 	putSlotTypeCommand     = app.Command("put-slot-type", "Adds or updates a slot type")
 	putSlotTypeCommandName = putSlotTypeCommand.Flag("name", "Name of Slot Type").Required().String()
@@ -25,10 +24,15 @@ var (
 	putIntentCommandFile = putIntentCommand.Arg("file", "The input specification in json or yaml").Required().File()
 
 	putBotCommand     = app.Command("put-bot", "Adds or updates a bot")
-	putBotCommandName = putBotCommand.Flag("name", "Name of Intent").Required().String()
+	putBotCommandName = putBotCommand.Flag("name", "Name of Bot").Required().String()
 	putBotCommandFile = putBotCommand.Arg("file", "The input specification in json or yaml").Required().File()
-	poll              = putBotCommand.Flag("poll", "Poll time").Default("3").Int()
+	putBotCommandPoll = putBotCommand.Flag("poll", "Poll time").Default("3").Int()
 	dontWait          = putBotCommand.Flag("dont-wait", "Don't wait for the build to completed before exiting").Default("false").Bool()
+
+	provisionCommand     = app.Command("provision", "Provisions and builds an entire Lex bot including slots, intents and the actual bot")
+	provisionCommandName = provisionCommand.Flag("name", "Name of Lex Bot to Provision").String()
+	provisionCommandPoll = provisionCommand.Flag("poll", "Poll time").Default("3").Int()
+	provisionCommandFile = provisionCommand.Arg("file", "The input specification in json or yaml").Required().File()
 )
 
 //version variable which can be overidden at computIntentCommandle time
@@ -69,40 +73,24 @@ func getAwsSession() *session.Session {
 
 func main() {
 
-	app.Version(version)
+	app.Version(version + " " + date + " " + commit)
 	app.HelpFlag.Short('h')
 	app.VersionFlag.Short('v')
 
 	command := kingpin.MustParse(app.Parse(os.Args[1:]))
 
 	sess := getAwsSession()
-
-	//var sess *session.Session
-	//if *pProfile != "" {
-	//	sess = session.Must(session.NewSessionWithOptions(session.Options{
-	//		Profile:           *pProfile,
-	//		SharedConfigState: session.SharedConfigEnable,
-	//	}))
-	//
-	//} else {
-	//	sess = session.Must(session.NewSessionWithOptions(session.Options{
-	//		SharedConfigState: session.SharedConfigEnable,
-	//	}))
-	//
-	//} //else
-	//if *pRegion != "" {
-	//	sess.Config.Region = aws.String(*pRegion)
-	//}
-
 	svc := lexmodelbuildingservice.New(sess)
 
 	switch command {
 	case putSlotTypeCommand.FullCommand():
-		putSlotType(svc)
+		putSlotType(svc, (*putSlotTypeCommandFile).Name())
 	case putIntentCommand.FullCommand():
-		putIntent(svc)
+		putIntent(svc, (*putIntentCommandFile).Name())
 	case putBotCommand.FullCommand():
-		putBot(svc)
+		putBot(svc, (*putBotCommandFile).Name(), *putBotCommandPoll)
+	case provisionCommand.FullCommand():
+		provision(svc, (*provisionCommandFile).Name(), *provisionCommandPoll)
 	}
 
 }

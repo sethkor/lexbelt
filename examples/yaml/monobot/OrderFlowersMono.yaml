@@ -1,0 +1,6 @@
+LexBotProvisioner:
+  lexBotName: OrderFlowersOnceMore
+  lexBot: OrderFlowersBot.yaml
+  lexIntent: OrderFlowers.yaml
+  lexSlot:
+    - FlowerTypes.yaml

@@ -1,5 +1,5 @@
-lextSlot:
-  name: Flower Types yaml
+lexSlot:
+  name: MoreFlowerTypes
   description: types of flowers to pick up from a yaml file
   enumerationValues:
     - value: tulips

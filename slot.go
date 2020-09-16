@@ -11,10 +11,10 @@ type slotYaml struct {
 	LexSlot *lexmodelbuildingservice.PutSlotTypeInput `locationName:"lexSlot" type:"structure"`
 }
 
-func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService) {
+func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService, file string) {
 	var mySlotType slotYaml
 
-	readAndUnmarshal((*putSlotTypeCommandFile).Name(), &mySlotType)
+	readAndUnmarshal(file, &mySlotType)
 
 	if mySlotType.LexSlot == nil {
 		log.Fatal("Yaml file is not as expected, please check your syntax.")

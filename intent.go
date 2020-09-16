@@ -11,10 +11,10 @@ type intentYaml struct {
 	LexIntent *lexmodelbuildingservice.PutIntentInput `locationName:"lexIntent" type:"structure"`
 }
 
-func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService) {
+func putIntent(svc *lexmodelbuildingservice.LexModelBuildingService, file string) {
 
 	var myIntent intentYaml
-	readAndUnmarshal((*putIntentCommandFile).Name(), &myIntent)
+	readAndUnmarshal(file, &myIntent)
 
 	if myIntent.LexIntent == nil {
 		log.Fatal("Yaml file is not as expected, please check your syntax.")

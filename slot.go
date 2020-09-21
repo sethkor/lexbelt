@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +12,21 @@ type slotYaml struct {
 	LexSlot *lexmodelbuildingservice.PutSlotTypeInput `locationName:"lexSlot" type:"structure"`
 }
 
-func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService, file string) {
+//func publishSlot(svc *lexmodelbuildingservice.LexModelBuildingService, name string) (string, error) {
+//
+//	getResult, err := svc.CreateSlotTypeVersion(&lexmodelbuildingservice.CreateSlotTypeVersionInput{
+//		Name: aws.String(name),
+//	})
+//
+//	var slotVersion string
+//	if err == nil {
+//		slotVersion = *getResult.Version
+//	}
+//
+//	return slotVersion, err
+//}
+
+func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService, file string, publish bool) (string, error) {
 	var mySlotType slotYaml
 
 	readAndUnmarshal(file, &mySlotType)
@@ -29,11 +44,11 @@ func putSlotType(svc *lexmodelbuildingservice.LexModelBuildingService, file stri
 	})
 
 	checkError(err)
-
 	mySlotType.LexSlot.Checksum = getResult.Checksum
-
-	_, err = svc.PutSlotType(mySlotType.LexSlot)
+	mySlotType.LexSlot.CreateVersion = aws.Bool(publish)
+	result, err := svc.PutSlotType(mySlotType.LexSlot)
 
 	checkError(err)
-
+	fmt.Printf("Slot %s was published as version %s\n", *mySlotType.LexSlot.Name, *result.Version)
+	return *result.Version, err
 }

@@ -1,5 +1,5 @@
 lexSlot:
-  name: MoreFlowerTypes
+  name: FlowerTypes
   description: types of flowers to pick up from a yaml file
   enumerationValues:
     - value: tulips
@@ -9,3 +9,15 @@ lexSlot:
     - value: lilies
     - value: roses
     - value: carnations
+    - value: daisy
+    - value: petuna
+    - value: lavender
+      synonyms:
+        - purple
+    - value: carnation
+      synonyms:
+        - english
+        - fancy
+        - fluffy
+    - value: orchid
+

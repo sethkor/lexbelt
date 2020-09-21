@@ -1,7 +1,7 @@
 # lexbelt
 A tool to provision Amazon Lex using YAML or JSON
 
-Amazon Lex is amazing, except it has very low automation.  There's no CloudFormation for it CFN for it.
+Amazon Lex is amazing, except it has very low automation.  There's no CloudFormation (CFN) for it for it.
 
 Also, when trying to create or update anything, the CLI wants you to pass in a checksum so it can figure out if it needs to update or create, this can be annoying.
 

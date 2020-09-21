@@ -4,6 +4,8 @@ lexIntent:
   sampleUtterances:
     - I would like to pick up flowers
     - I would like to order some flowers
+    - Flowers please
+    - Can I have some flowers
   slots:
     - slotType: FlowerTypes
       slotTypeVersion: $LATEST

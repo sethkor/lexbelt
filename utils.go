@@ -13,7 +13,6 @@ import (
 
 func checkError(err error) {
 	if err != nil {
-
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 

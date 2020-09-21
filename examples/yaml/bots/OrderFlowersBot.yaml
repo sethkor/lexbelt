@@ -1,6 +1,6 @@
 lexBot:
   intents:
-    - intentVersion: $LATEST
+    - intentVersion: 1
       intentName: OrderFlowers
   name: OrderFlowersBot
   locale: en-US

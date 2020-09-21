@@ -62,6 +62,8 @@ your-lex-workspace
 The yaml/json syntax for slots, intents and bots are all based directly of the AWS API Put API calls, so any attribute 
 supported by the AWS API will be supported in the API now or in the future can be included in a yaml file
 
+The tool won't handle mixing json and yaml within a bot (e.g. yaml bot, json intent or slot, etc), pick one and stick with it.
+
 ## Lex Bot Odd Behaviour
 AWS Lex does do some weird stuff.
 

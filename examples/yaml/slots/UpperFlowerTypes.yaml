@@ -1,0 +1,22 @@
+  Name: UpperFlowerTypes
+  Description: types of flowers to pick up from a yaml file
+  EnumerationValues:
+    - Value: tulips
+      Synonyms:
+        - dutch
+        - holland
+    - Value: lilies
+    - Value: roses
+    - Value: carnations
+    - Value: daisy
+    - Value: petuna
+    - Value: lavender
+      Synonyms:
+        - purple
+    - Value: carnation
+      Synonyms:
+        - english
+        - fancy
+        - fluffy
+    - Value: orchid
+

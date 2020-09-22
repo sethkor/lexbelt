@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -11,35 +10,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/lexmodelbuildingservice"
 )
 
-type botYaml struct {
-	LexBot *lexmodelbuildingservice.PutBotInput `locationName:"lexBot" type:"structure"`
-}
-
-func publishBot(svc *lexmodelbuildingservice.LexModelBuildingService, name string) string {
-
-	getResult, err := svc.CreateBotVersion(&lexmodelbuildingservice.CreateBotVersionInput{
-		Name: aws.String(name),
-	})
-
-	checkError(err)
-
-	return *getResult.Version
-}
-
 func putBot(svc *lexmodelbuildingservice.LexModelBuildingService, file string, name string, poll int, publish *string) {
 
-	var myBot botYaml
+	var myBot lexmodelbuildingservice.PutBotInput
 	readAndUnmarshal(file, &myBot)
-
-	if myBot.LexBot == nil {
-		log.Fatal("Yaml file is not as expected, please check your syntax.")
-	}
 
 	if publish != nil {
 		//publish each intent
 		separator := string(os.PathSeparator)
 		basePath := filepath.Dir(file) + separator + ".." + separator
-		for _, v := range myBot.LexBot.Intents {
+		for _, v := range myBot.Intents {
 			intentVersion, err := putIntent(svc, basePath+"intents"+separator+*v.IntentName+filepath.Ext(file), true)
 			checkError(err)
 			v.IntentVersion = aws.String(intentVersion)
@@ -47,23 +27,23 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService, file string, n
 	}
 
 	if name != "" {
-		myBot.LexBot.Name = &name
+		myBot.Name = &name
 	}
 
 	getResult, err := svc.GetBot(&lexmodelbuildingservice.GetBotInput{
-		Name:           myBot.LexBot.Name,
+		Name:           myBot.Name,
 		VersionOrAlias: aws.String("$LATEST"),
 	})
 
 	checkError(err)
 
-	myBot.LexBot.Checksum = getResult.Checksum
+	myBot.Checksum = getResult.Checksum
 
 	if publish != nil {
-		myBot.LexBot.CreateVersion = aws.Bool(true)
+		myBot.CreateVersion = aws.Bool(true)
 	}
 
-	putResult, err := svc.PutBot(myBot.LexBot)
+	putResult, err := svc.PutBot(&myBot)
 
 	checkError(err)
 
@@ -78,20 +58,20 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService, file string, n
 
 				getAliasResult, err := svc.GetBotAlias(&lexmodelbuildingservice.GetBotAliasInput{
 					Name:    publish,
-					BotName: myBot.LexBot.Name,
+					BotName: myBot.Name,
 				})
 
 				checkError(err)
 				_, err = svc.PutBotAlias(&lexmodelbuildingservice.PutBotAliasInput{
 					Name:       publish,
-					BotName:    myBot.LexBot.Name,
+					BotName:    myBot.Name,
 					BotVersion: putResult.Version,
 					Checksum:   getAliasResult.Checksum,
 				})
 
 				checkError(err)
 				fmt.Printf("Bot %s was published as version %s and alias \"%s\".\n",
-					*myBot.LexBot.Name,
+					*myBot.Name,
 					*putResult.Version,
 					*publish)
 
@@ -104,7 +84,7 @@ func putBot(svc *lexmodelbuildingservice.LexModelBuildingService, file string, n
 			time.Sleep(time.Duration(poll) * time.Second)
 
 			getResult, err = svc.GetBot(&lexmodelbuildingservice.GetBotInput{
-				Name:           myBot.LexBot.Name,
+				Name:           myBot.Name,
 				VersionOrAlias: aws.String("$LATEST"),
 			})
 

@@ -29,7 +29,10 @@ Commands:
     Adds or updates an intent
 
   put-bot --name=NAME [<flags>] <file>
-    Adds or updates a bo
+    Adds or updates a bot
+
+  export [<flags>]
+    Export existing AWS Lex configs and write to workspace
 ```
 ## Getting lexbelt
 Easiest way to install if you're on a Mac or Linux (amd64 or arm64)  is to use [Homebrew](https://brew.sh/)
@@ -51,6 +54,7 @@ For other platforms take a look at the releases in Github.  I build binaries for
 
 Let me know if you would like a particular os/arch binary regularly built.
 
+Lexbelt expects your workspace to look like this:
 ```
 your-lex-workspace
    ├──slots

@@ -66,7 +66,7 @@ deploy any dependecies needed.
 Lexbelt supports publishing, that is promoting the `$LATEST` version to the next incremental version number.  This is
 done by passing the `--publish` flag with the command.
 
-If you fdeploy a bot at it or intents has a dependecy on something who's version is `$LATEST` in hte spec you provide,
+If you deploy a bot at it or intents has a dependecy on something who's version is `$LATEST` in hte spec you provide,
 lexbelt will publish the dependencies and provision new elements with the correct version id's you have just published.
 
 The yaml/json syntax for slots, intents and bots are all based directly of the AWS API Put API calls, so any attribute 

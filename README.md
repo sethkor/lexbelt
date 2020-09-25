@@ -51,6 +51,8 @@ For other platforms take a look at the releases in Github.  I build binaries for
 
 Let me know if you would like a particular os/arch binary regularly built.
 
+Lexbelt wants your lex workspace to look like the following:
+
 ```
 your-lex-workspace
    ├──slots
@@ -58,6 +60,14 @@ your-lex-workspace
    └──bots
 
 ```
+The reason why is that it intelligently looks for dependecies when deploying bots or intents and will automatically
+deploy any dependecies needed.
+
+Lexbelt supports publishing, that is promoting the `$LATEST` version to the next incremental version number.  This is
+done by passing the `--publish` flag with the command.
+
+If you fdeploy a bot at it or intents has a dependecy on something who's version is `$LATEST` in hte spec you provide,
+lexbelt will publish the dependencies and provision new elements with the correct version id's you have just published.
 
 The yaml/json syntax for slots, intents and bots are all based directly of the AWS API Put API calls, so any attribute 
 supported by the AWS API will be supported in the API now or in the future can be included in a yaml file

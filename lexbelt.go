@@ -31,6 +31,9 @@ var (
 	putBotCommandPublish = putBotCommand.Flag("publish", "Publish a new version the bot with the provided alias").String()
 	putBotCommandPoll    = putBotCommand.Flag("poll", "Poll time").Default("3").Int()
 	dontWait             = putBotCommand.Flag("dont-wait", "Don't wait for the build to completed before exiting").Default("false").Bool()
+
+	exportCommand     = app.Command("export", "Export existing AWS Lex configs and write to workspace")
+	exportCommandJson = exportCommand.Flag("json", "export as json").Default("false").Bool()
 )
 
 var (
@@ -86,6 +89,8 @@ func main() {
 		putIntent(svc, (*putIntentCommandFile).Name(), *putIntentCommandPublish)
 	case putBotCommand.FullCommand():
 		putBot(svc, (*putBotCommandFile).Name(), *putBotCommandName, *putBotCommandPoll, putBotCommandPublish)
+	case exportCommand.FullCommand():
+		exportLex(svc, *exportCommandJson)
 	}
 
 }

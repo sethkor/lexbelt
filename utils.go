@@ -52,3 +52,16 @@ func readAndUnmarshal(fileName string, destination interface{}) {
 	}
 
 }
+
+func marshalAndWrite(fileName string, toJson bool, source interface{}) {
+	var file []byte
+	extension := ".yaml"
+	if toJson {
+		file, _ = json.MarshalIndent(source, "", "  ")
+		extension = ".json"
+	} else {
+		file, _ = yaml.Marshal(source)
+	}
+	err := ioutil.WriteFile(fileName+extension, file, 0644)
+	checkError(err)
+}

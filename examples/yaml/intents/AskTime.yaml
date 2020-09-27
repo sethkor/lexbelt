@@ -7,6 +7,6 @@ sampleUtterances:
   - 'Time please'
 fulfillmentActivity:
   codeHook:
-     uri: arn:aws:lambda:ap-southeast-2:293499315857:function:LexLambdaSampleFulfilment
+     uri: arn:aws:lambda:ap-southeast-2:123456789012:function:LexLambdaSampleFulfilment
      messageVersion: "1.0"
   type: CodeHook

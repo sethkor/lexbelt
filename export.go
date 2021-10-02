@@ -9,6 +9,7 @@ import (
 func exportLex(svc *lexmodelbuildingservice.LexModelBuildingService, toJson bool) {
 
 	//ensure the needed child dirs are present
+
 	os.Mkdir("slots", 0744)
 	os.Mkdir("intents", 0744)
 	os.Mkdir("bots", 0744)
